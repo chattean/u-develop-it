@@ -22,7 +22,11 @@ const db = new sqlite3.Database('./db/election.db', err => {
   });
 // return all the data in the candidates table
 app.get('/api/candidates', (req, res) => {
-    const sql = `SELECT * FROM candidates`;
+    const sql = `SELECT candidates.*, parties.name 
+    AS party_name 
+    FROM candidates 
+    LEFT JOIN parties 
+    ON candidates.party_id = parties.id`;
     const params = [];
     db.all(sql,params, (err, rows) => {
         if(err){
@@ -41,7 +45,12 @@ app.get('/api/candidates', (req, res) => {
 
 // GET a single candidate
 app.get('/api/candidates/:id', (req,res) =>{
-    const sql = `SELECT * FROM candidates WHERE id = ?`;
+  const sql = `SELECT candidates.*, parties.name 
+  AS party_name 
+  FROM candidates 
+  LEFT JOIN parties 
+  ON candidates.party_id = parties.id 
+  WHERE candidates.id = ?`;
     const params = [req.params.id]
     db.all(sql, params, (err,rows) => {
         if(err){
