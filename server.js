@@ -6,6 +6,8 @@ const express = require('express');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+const inputCheck = require('./utils/inputCheck');
+
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -38,6 +40,19 @@ app.get('/api/candidates', (req, res) => {
 // });
 
 // GET a single candidate
+app.get('/api/candidates/:id', (req,res) =>{
+    const sql = `SELECT * FROM candidates WHERE id = ?`;
+    const params = [req.params.id]
+    db.all(sql, params, (err,rows) => {
+        if(err){
+            res.status(400).json({error:err.message});
+        }
+        res.json({
+            message:'success',
+            data: rows
+        });
+    });
+});
 // db.get(`SELECT * FROM candidates WHERE id = 1`, (err, row) => {
 //     if(err) {
 //       console.log(err);
@@ -46,6 +61,22 @@ app.get('/api/candidates', (req, res) => {
 //   });
 
 // Delete a candidate
+
+app.delete('/api/candidate/:id', (req, res) => {
+    const sql = `DELETE FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
+    db.run(sql, params, function(err, result) {
+      if (err) {
+        res.status(400).json({ error: res.message });
+        return;
+      }
+  
+      res.json({
+        message: 'successfully deleted',
+        changes: this.changes
+      });
+    });
+  });
 // db.run(`DELETE FROM candidates WHERE id = ?`, 1, function(err, result) {
 //     if (err) {
 //       console.log(err);
@@ -54,6 +85,18 @@ app.get('/api/candidates', (req, res) => {
 //   });
 
 // Create a candidate
+app.post('/api/candidate', ({ body }, res) => {
+    const errors = inputCheck(body, 'first_name', 'last_name', 'industry_connected');
+    if (errors) {
+      res.status(400).json({ error: errors });
+      return;
+    }
+    res.json({
+        message: 'success',
+        data: body,
+        id: this.lastID
+      });
+  });
 // const sql = `INSERT INTO candidates (id, first_name, last_name, industry_connected) 
 //               VALUES (?,?,?,?)`;
 // const params = [1, 'Ronald', 'Firbank', 1];
